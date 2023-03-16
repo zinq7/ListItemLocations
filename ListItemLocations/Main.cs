@@ -7,7 +7,6 @@ using System;
 
 namespace ListItemLocations
 {
-    [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
 
     public class Main : BaseUnityPlugin
@@ -15,15 +14,14 @@ namespace ListItemLocations
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "zinq7";
         public const string PluginName = "ListItemLocations";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
+        public static readonly string path = $"{Assembly.GetExecutingAssembly().Location}/../../../ItemLogs.log";
 
         public static BepInEx.Configuration.ConfigEntry<LogLevel> logLevel;
+        public static BepInEx.Configuration.ConfigEntry<bool> saveToFile;
 
         private static List<LocationInfo> locations = new();
         HashSet<UnityEngine.GameObject> alreadyLoggedObjs = new();
-
-        public static readonly string path = $"{Assembly.GetExecutingAssembly().Location}/../../../ItemLogs.txt";
-
         private static int stagesLogged = -1;
 
         public void Awake()
@@ -35,6 +33,13 @@ namespace ListItemLocations
                 "Log Level",
                 LogLevel.ItemsAndSources,
                 "How much information the game will provide to the console. JSON doesn't work rn"
+            );
+
+            saveToFile = Config.Bind<bool>(
+                "Functionality",
+                "Save to File?",
+                true,
+                "Whether or not to also save the data to a log file"
             );
 
             File.WriteAllText(path, "Start Instance of new Game"); // "clear" text file
@@ -55,7 +60,7 @@ namespace ListItemLocations
         {
             orig(self);
 
-            File.AppendAllText(path, $"\n\nNew Run Started at {DateTime.Now}");
+            if (saveToFile.Value) File.AppendAllText(path, $"\n\nNew Run Started at {DateTime.Now}");
 
             stagesLogged = -1;
         }
@@ -105,7 +110,7 @@ namespace ListItemLocations
                 UnityEngine.Debug.Log(loc.AsString());
             }
 
-            File.AppendAllText(path, file);
+            if (saveToFile.Value) File.AppendAllText(path, file);
             //Log.LogDebug("APPENDED FILE");
 
             locations.Clear();

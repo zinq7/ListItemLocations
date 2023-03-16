@@ -14,6 +14,10 @@ If you have any suggestions, ideas, or just idk other things ping me at @zinq#66
 
 # Changelogs
 
+**1.0.1**
+
+- Allow the option to not save it to a text file 
+
 **1.0.0**
 
 - Mod port from RiskOfResources Gauntlet Mod
