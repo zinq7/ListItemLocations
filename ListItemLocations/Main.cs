@@ -191,7 +191,8 @@ namespace ListItemLocations
             public PickupIndex item;
             public float x, y;
             public bool isItem;
-            private string nameToken = "none";
+            private string? nameToken = null;
+            
             public LocationInfo(string obj, PickupIndex item, float x, float y)
             {
                 this.objectType = obj;
@@ -204,7 +205,7 @@ namespace ListItemLocations
 
             public string AsString()
             {
-                string ret = (nameToken != "none") ? $"{Language.GetString(nameToken)}" : "NON_ITEM"; // string format just name :racesR:
+                string ret = (nameToken is not null) ? $"{Language.GetString(nameToken)}" : "NON_ITEM"; // string format just name :racesR:
 
                 if (logLevel.Value == LogLevel.OnlyItems)
                 {
