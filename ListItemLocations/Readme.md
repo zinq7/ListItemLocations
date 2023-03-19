@@ -14,6 +14,14 @@ If you have any suggestions, ideas, or just idk other things ping me at @zinq#66
 
 # Changelogs
 
+**1.0.3**
+
+-  :)
+
+**1.0.2**
+
+- HumanFans no longer explode the mod 
+
 **1.0.1**
 
 - Allow the option to not save it to a text file 

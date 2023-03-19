@@ -14,7 +14,7 @@ namespace ListItemLocations
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "zinq7";
         public const string PluginName = "ListItemLocations";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.0.3";
         public static readonly string path = $"{Assembly.GetExecutingAssembly().Location}/../../../ItemLogs.log";
 
         public static BepInEx.Configuration.ConfigEntry<LogLevel> logLevel;

@@ -2,7 +2,7 @@
   "name": "ListItemData",
   "author": "zinq7",
   "authorName": "zinq7",
-  "version_number": "1.0.2",
+  "version_number": "1.0.3",
   "website_url": "https://github.com/zinq7/ListItemLocations/tree/master/ListItemLocations",
   "description": "Small plugin that logs the items that spawn in a stage",
   "dependencies": [
