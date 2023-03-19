@@ -202,7 +202,7 @@ namespace ListItemLocations
 
             public string AsString()
             {
-                string ret = $"{Language.GetString(PickupCatalog.GetPickupDef(item).nameToken)}"; // string format just name :racesR:
+                string ret = $"{Language.GetString(PickupCatalog.GetPickupDef(item)?.nameToken)}"; // string format just name :racesR:
 
                 if (logLevel.Value == LogLevel.OnlyItems)
                 {
