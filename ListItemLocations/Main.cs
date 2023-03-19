@@ -191,6 +191,7 @@ namespace ListItemLocations
             public PickupIndex item;
             public float x, y;
             public bool isItem;
+            private string nameToken = "none";
             public LocationInfo(string obj, PickupIndex item, float x, float y)
             {
                 this.objectType = obj;
@@ -198,11 +199,12 @@ namespace ListItemLocations
                 this.x = x;
                 this.y = y;
                 isItem = ItemCatalog.GetItemDef(item.itemIndex) is not null;
+                nameToken = PickupCatalog.GetPickupDef(item)?.nameToken;
             }
 
             public string AsString()
             {
-                string ret = $"{Language.GetString(PickupCatalog.GetPickupDef(item)?.nameToken)}"; // string format just name :racesR:
+                string ret = (nameToken != "none") ? $"{Language.GetString(nameToken)}" : "NON_ITEM"; // string format just name :racesR:
 
                 if (logLevel.Value == LogLevel.OnlyItems)
                 {
