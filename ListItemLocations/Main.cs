@@ -46,6 +46,7 @@ namespace ListItemLocations
             );
 
             File.WriteAllText(path, "Start Instance of new Game"); // "clear" text file
+            File.Delete(jsonPath);
 
             On.RoR2.Run.Start += AppendNewRun;
             On.RoR2.Run.AdvanceStage += LogAndUnlog;
@@ -68,30 +69,20 @@ namespace ListItemLocations
             stagesLogged = -1;
         }
 
-        private void GetMultishopItems(On.RoR2.ShopTerminalBehavior.orig_GenerateNewPickupServer orig, ShopTerminalBehavior self)
+        private void LogAndUnlog(On.RoR2.Run.orig_AdvanceStage orig, Run self, SceneDef nextScene)
         {
-            orig(self);
-
-            if (alreadyLoggedObjs.Contains(self.gameObject)) return;
-            else alreadyLoggedObjs.Add(self.gameObject);
-
-            if (self.pickupIndex.value == -1) return; // BAD_PICKUP_INDEX
-
-            Append(self.gameObject.name, self.pickupIndex, self.transform.position.x, self.transform.position.y);
+            LogSomeData(); // update on next stage
+            alreadyLoggedObjs.Clear();
+            orig(self, nextScene);
         }
 
         public static void LogSomeData()
         {
             locations.Sort((x, y) => {
                 if (!x.isItem || !y.isItem)
-                {
                     return 0;
-                }
                 else
-                {
                     return ItemCatalog.GetItemDef(PickupCatalog.GetPickupDef(x.item).itemIndex).tier.CompareTo(ItemCatalog.GetItemDef(PickupCatalog.GetPickupDef(y.item).itemIndex).tier);
-                }
-
             });
 
             string file = "";
@@ -114,6 +105,7 @@ namespace ListItemLocations
             // courtesy of discohatesme
             if (saveToFile.Value && logLevel.Value == LogLevel.FuckMeJSON)
             {
+                List<UsefulInfo> actualStageInfo = new();
                 stageLoot.Add(stagesLogged, new List<LocationInfo>(locations));
                 var json = JsonConvert.SerializeObject(stageLoot);
                 File.WriteAllText(jsonPath, json);
@@ -121,7 +113,6 @@ namespace ListItemLocations
             }
 
             if (saveToFile.Value) File.AppendAllText(path, file);
-            //Log.LogDebug("APPENDED FILE");
 
             locations.Clear();
         }
@@ -137,11 +128,18 @@ namespace ListItemLocations
             }
         }
 
-        private void LogAndUnlog(On.RoR2.Run.orig_AdvanceStage orig, Run self, SceneDef nextScene)
+        private void GetMultishopItems(On.RoR2.ShopTerminalBehavior.orig_GenerateNewPickupServer orig, ShopTerminalBehavior self)
         {
-            alreadyLoggedObjs.Clear();
-            orig(self, nextScene);
+            orig(self);
+
+            if (alreadyLoggedObjs.Contains(self.gameObject)) return;
+            else alreadyLoggedObjs.Add(self.gameObject);
+
+            if (self.pickupIndex.value == -1) return; // BAD_PICKUP_INDEX
+
+            Append(self.gameObject.name, self.pickupIndex, self.transform.position.x, self.transform.position.y);
         }
+
         private void ChanceShenanigans(On.RoR2.ShrineChanceBehavior.orig_Start orig, ShrineChanceBehavior self)
         {
             const int SHRINE_MAX = 2;
@@ -192,7 +190,6 @@ namespace ListItemLocations
         private void Append(string name, PickupIndex item, float x, float y)
         {
             locations.Add(new LocationInfo(name, item, x, y));
-            LogSomeData(); // force update
         }
 
         private class LocationInfo
@@ -238,6 +235,22 @@ namespace ListItemLocations
                 }
 
                 return ret;
+            }
+        }
+
+        public class UsefulInfo
+        {
+            public int x, y;
+            public ItemTier tier;
+            public string englishName;
+            public string source;
+            public UsefulInfo(int x, int y, ItemTier tier, string englishName, string source)
+            {
+                this.x = x;
+                this.y = y;
+                this.tier = tier;
+                this.englishName = englishName;
+                this.source = source;
             }
         }
 
