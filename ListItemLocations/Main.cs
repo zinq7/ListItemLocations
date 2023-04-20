@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using Newtonsoft.Json;
 
 namespace ListItemLocations
 {
@@ -16,12 +17,14 @@ namespace ListItemLocations
         public const string PluginName = "ListItemLocations";
         public const string PluginVersion = "1.0.3";
         public static readonly string path = $"{Assembly.GetExecutingAssembly().Location}/../../../ItemLogs.log";
+        public static readonly string jsonPath = $"{Assembly.GetExecutingAssembly().Location}/../../../ItemLogs.json";
 
         public static BepInEx.Configuration.ConfigEntry<LogLevel> logLevel;
         public static BepInEx.Configuration.ConfigEntry<bool> saveToFile;
 
+        private static Dictionary<int, List<LocationInfo>> stageLoot = new();
         private static List<LocationInfo> locations = new();
-        HashSet<UnityEngine.GameObject> alreadyLoggedObjs = new();
+        private static HashSet<UnityEngine.GameObject> alreadyLoggedObjs = new();
         private static int stagesLogged = -1;
 
         public void Awake()
@@ -102,12 +105,19 @@ namespace ListItemLocations
                 }
             }
 
-
-
             foreach (var loc in locations)
             {
                 file += "\n" + loc.AsString();
                 UnityEngine.Debug.Log(loc.AsString());
+            }
+
+            // courtesy of discohatesme
+            if (saveToFile.Value && logLevel.Value == LogLevel.FuckMeJSON)
+            {
+                stageLoot.Add(stagesLogged, new List<LocationInfo>(locations));
+                var json = JsonConvert.SerializeObject(stageLoot);
+                File.WriteAllText(jsonPath, json);
+                File.AppendAllText(path, file);
             }
 
             if (saveToFile.Value) File.AppendAllText(path, file);
@@ -199,8 +209,8 @@ namespace ListItemLocations
                 this.item = item;
                 this.x = x;
                 this.y = y;
-                isItem = ItemCatalog.GetItemDef(item.itemIndex) is not null;
-                nameToken = PickupCatalog.GetPickupDef(item)?.nameToken;
+                this.isItem = ItemCatalog.GetItemDef(item.itemIndex) is not null;
+                this.nameToken = PickupCatalog.GetPickupDef(item)?.nameToken;
             }
 
             public string AsString()
