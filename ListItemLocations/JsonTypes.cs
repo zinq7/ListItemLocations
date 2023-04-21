@@ -73,13 +73,13 @@ namespace ListItemLocations
         {
             public string stageName = "buff";
             public int stageNum = -1;
-            public Dictionary<int, List<UsefulInfo>> stageLoot = new();
+            public List<UsefulInfo> stageLoot = new();
         }
 
         public class RunInfo
         {
-            public long startTime = System.DateTime.Now.ToFileTimeUtc();
-            public StageLoot loot;
+            public long startTime = DateTime.Now.ToFileTimeUtc();
+            public List<StageLoot> loot;
         }
 
         public enum LogLevel
