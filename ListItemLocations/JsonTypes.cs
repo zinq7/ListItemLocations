@@ -71,14 +71,14 @@ namespace ListItemLocations
 
         public class StageLoot
         {
-            public string stageName;
-            public int stageNum;
+            public string stageName = "buff";
+            public int stageNum = -1;
             public Dictionary<int, List<UsefulInfo>> stageLoot = new();
         }
 
         public class RunInfo
         {
-            public float startTime;
+            public long startTime = System.DateTime.Now.ToFileTimeUtc();
             public StageLoot loot;
         }
 

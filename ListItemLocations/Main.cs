@@ -86,7 +86,14 @@ namespace ListItemLocations
 
             stagesLogged = -1;
 
-            currentRun = new();
+            currentRun = new()
+            {
+                loot = new()
+                {
+                    stageNum = 0,
+                    stageName = Language.GetString(Stage.instance.sceneDef.nameToken)
+                }
+            };
         }
 
         private void LogAndUnlog(On.RoR2.Run.orig_AdvanceStage orig, Run self, SceneDef nextScene)
