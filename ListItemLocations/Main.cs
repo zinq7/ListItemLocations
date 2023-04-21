@@ -91,7 +91,8 @@ namespace ListItemLocations
                 loot = new()
                 {
                     stageNum = 0,
-                    stageName = Language.GetString(Stage.instance.sceneDef.nameToken)
+                    stageName = "Stage 1, idk",
+                    stageLoot = new()
                 }
             };
         }
@@ -146,6 +147,11 @@ namespace ListItemLocations
                     actualStageInfo.Add(info);
                 }
                 currentRun.loot.stageLoot.Add(stagesLogged, actualStageInfo);
+
+                runInfos.Add(currentRun);
+                var json = JsonConvert.SerializeObject(runInfos);
+                File.WriteAllText(jsonPath, json);
+                runInfos.RemoveAt(runInfos.Count - 1);
             }
 
             if (saveToFile.Value) File.AppendAllText(path, file);
