@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using Newtonsoft.Json;
+using static ListItemLocations.JsonTypes;
 
 namespace ListItemLocations
 {
@@ -22,14 +23,15 @@ namespace ListItemLocations
         public static BepInEx.Configuration.ConfigEntry<LogLevel> logLevel;
         public static BepInEx.Configuration.ConfigEntry<bool> saveToFile;
 
-        private static Dictionary<int, List<LocationInfo>> stageLoot = new();
+
+        private static Dictionary<int, List<UsefulInfo>>  stageLoot = new();
         private static List<LocationInfo> locations = new();
         private static HashSet<UnityEngine.GameObject> alreadyLoggedObjs = new();
         private static int stagesLogged = -1;
 
         public void Awake()
         {
-            Log.Init(Logger);
+            Log.Init(Logger) ;
 
             logLevel = Config.Bind<LogLevel>(
                 "Functionality",
@@ -99,14 +101,26 @@ namespace ListItemLocations
             foreach (var loc in locations)
             {
                 file += "\n" + loc.AsString();
-                UnityEngine.Debug.Log(loc.AsString());
+                
             }
 
             // courtesy of discohatesme
             if (saveToFile.Value && logLevel.Value == LogLevel.FuckMeJSON)
             {
                 List<UsefulInfo> actualStageInfo = new();
-                stageLoot.Add(stagesLogged, new List<LocationInfo>(locations));
+                foreach (var loc in locations)
+                {
+                    UsefulInfo info = new(
+                        loc.x,
+                        loc.y,
+                        loc.isItem ? ItemCatalog.GetItemDef(loc.item.itemIndex).tier : (ItemTier)(-1),
+                        loc.item == (PickupIndex.none) ? "literally a fan" : 
+                            Language.GetString(loc.isItem ? ItemCatalog.GetItemDef(loc.item.itemIndex).nameToken : EquipmentCatalog.GetEquipmentDef(loc.item.equipmentIndex).nameToken),
+                        loc.objectType
+                    );
+                    actualStageInfo.Add(info);
+                }
+                stageLoot.Add(stagesLogged, actualStageInfo);
                 var json = JsonConvert.SerializeObject(stageLoot);
                 File.WriteAllText(jsonPath, json);
                 File.AppendAllText(path, file);
@@ -189,78 +203,10 @@ namespace ListItemLocations
 
         private void Append(string name, PickupIndex item, float x, float y)
         {
-            locations.Add(new LocationInfo(name, item, x, y));
+            var loc = new LocationInfo(name, item, x, y);
+            locations.Add(loc);
+            UnityEngine.Debug.Log(loc.AsString());
         }
 
-        private class LocationInfo
-        {
-            public string objectType;
-            public PickupIndex item;
-            public float x, y;
-            public bool isItem;
-            private string? nameToken = null;
-            
-            public LocationInfo(string obj, PickupIndex item, float x, float y)
-            {
-                this.objectType = obj;
-                this.item = item;
-                this.x = x;
-                this.y = y;
-                this.isItem = ItemCatalog.GetItemDef(item.itemIndex) is not null;
-                this.nameToken = PickupCatalog.GetPickupDef(item)?.nameToken;
-            }
-
-            public string AsString()
-            {
-                string ret = (nameToken is not null) ? $"{Language.GetString(nameToken)}" : "NON_ITEM"; // string format just name :racesR:
-
-                if (logLevel.Value == LogLevel.OnlyItems)
-                {
-                    return ret;
-                }
-
-                if (logLevel.Value >= LogLevel.ItemsAndSources)
-                {
-                    ret += $"           in {objectType}";
-                }
-
-                if (logLevel.Value >= LogLevel.AllInfo)
-                {
-                    ret += $"           at ({x}, {y})";
-                }
-
-                if (logLevel.Value == LogLevel.FuckMeJSON)
-                {
-                    UnityEngine.Debug.Log("TBI"); // not yet
-                }
-
-                return ret;
-            }
-        }
-
-        public class UsefulInfo
-        {
-            public int x, y;
-            public ItemTier tier;
-            public string englishName;
-            public string source;
-            public UsefulInfo(int x, int y, ItemTier tier, string englishName, string source)
-            {
-                this.x = x;
-                this.y = y;
-                this.tier = tier;
-                this.englishName = englishName;
-                this.source = source;
-            }
-        }
-
-        public enum LogLevel
-        {
-            NoLogging = -1,
-            OnlyItems = 0,
-            ItemsAndSources = 1,
-            AllInfo = 2,
-            FuckMeJSON = 3
-        }
     }
 }
