@@ -24,7 +24,9 @@ namespace ListItemLocations
         public static BepInEx.Configuration.ConfigEntry<bool> saveToFile;
 
 
-        private static Dictionary<int, List<UsefulInfo>>  stageLoot = new();
+        private static List<RunInfo> runInfos = new();
+        private static RunInfo currentRun;
+
         private static List<LocationInfo> locations = new();
         private static HashSet<UnityEngine.GameObject> alreadyLoggedObjs = new();
         private static int stagesLogged = -1;
@@ -52,6 +54,7 @@ namespace ListItemLocations
 
             On.RoR2.Run.Start += AppendNewRun;
             On.RoR2.Run.AdvanceStage += LogAndUnlog;
+            On.RoR2.Run.OnClientGameOver += AppendAllRunInfo;
             On.RoR2.ChestBehavior.Roll += LogChestRoll;
             On.RoR2.ShopTerminalBehavior.SetPickupIndex += SetPrinterIndex;
             On.RoR2.ShopTerminalBehavior.GenerateNewPickupServer += GetMultishopItems;
@@ -62,6 +65,19 @@ namespace ListItemLocations
             Log.LogDebug(PluginGUID + " Awake Done");
         }
 
+        private void AppendAllRunInfo(On.RoR2.Run.orig_OnClientGameOver orig, Run self, RunReport runReport)
+        {
+            orig(self, runReport);
+
+            runInfos.Add(currentRun); // cool
+
+            if (saveToFile.Value && logLevel.Value == LogLevel.FuckMeJSON)
+            {
+                var json = JsonConvert.SerializeObject(runInfos);
+                File.WriteAllText(jsonPath, json);
+            }
+        }
+
         private void AppendNewRun(On.RoR2.Run.orig_Start orig, Run self)
         {
             orig(self);
@@ -69,6 +85,8 @@ namespace ListItemLocations
             if (saveToFile.Value) File.AppendAllText(path, $"\n\nNew Run Started at {DateTime.Now}");
 
             stagesLogged = -1;
+
+            currentRun = new();
         }
 
         private void LogAndUnlog(On.RoR2.Run.orig_AdvanceStage orig, Run self, SceneDef nextScene)
@@ -120,10 +138,7 @@ namespace ListItemLocations
                     );
                     actualStageInfo.Add(info);
                 }
-                stageLoot.Add(stagesLogged, actualStageInfo);
-                var json = JsonConvert.SerializeObject(stageLoot);
-                File.WriteAllText(jsonPath, json);
-                File.AppendAllText(path, file);
+                currentRun.loot.stageLoot.Add(stagesLogged, actualStageInfo);
             }
 
             if (saveToFile.Value) File.AppendAllText(path, file);

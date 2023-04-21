@@ -69,6 +69,19 @@ namespace ListItemLocations
             }
         }
 
+        public class StageLoot
+        {
+            public string stageName;
+            public int stageNum;
+            public Dictionary<int, List<UsefulInfo>> stageLoot = new();
+        }
+
+        public class RunInfo
+        {
+            public float startTime;
+            public StageLoot loot;
+        }
+
         public enum LogLevel
         {
             NoLogging = -1,
